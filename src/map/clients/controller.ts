@@ -76,13 +76,16 @@ class Controller extends Client {
   public getListText() {
     const { callsign, frequency, transceivers } = this.clientData;
 
-    const frequencies =
-      [frequency] || transceivers.map((t: Transceiver) => t.frequency);
-    if (frequencies.length === 0) {
-      frequencies.push("No frequency");
+    const frequencies = new Set();
+    frequencies.add(frequency);
+    transceivers.map((t: Transceiver) => frequencies.add(t.frequency));
+    if (frequencies.size === 0) {
+      frequencies.add("No frequency");
     }
 
-    return `<strong>${callsign}</strong> - ${frequencies.join(", ")}`;
+    return `<strong>${callsign}</strong> - ${Array.from(frequencies).join(
+      ", "
+    )}`;
   }
 
   private getPopupContent(frequency = "") {
@@ -97,6 +100,12 @@ class Controller extends Client {
     }
 
     return content;
+  }
+
+  public position(): L.LatLngExpression {
+    const { transceivers } = this.clientData;
+    const [lat, lon] = getCenterOfCoordinates(transceivers);
+    return { lat: lat, lng: lon };
   }
 }
 

@@ -1,4 +1,4 @@
-import L from "leaflet";
+import L, { LatLngExpression } from "leaflet";
 
 import { ClientData } from "../types";
 
@@ -29,6 +29,10 @@ abstract class Client {
   abstract upsertRangeRings(map: L.Map): void;
 
   abstract getListText(): string;
+  public callsign(): string {
+    return this.clientData.callsign;
+  }
+  public abstract position(): LatLngExpression;
 }
 
 export default Client;

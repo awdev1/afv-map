@@ -106,23 +106,21 @@ export class TransceiverMap {
   }
 
   upsertClient(clientData: ClientData) {
-    const { type, callsign } = clientData;
+    const { callsign } = clientData;
 
-    let client = this.clients[type + callsign];
+    let client = this.clients[callsign];
     if (!client) {
       client = instantiateClient(clientData);
     }
 
     client.update(this.map, clientData);
 
-    this.clients[type + callsign] = client;
+    this.clients[callsign] = client;
   }
 
   findDisconnectedClients(clientsData: ClientData[]) {
     const oldCallsigns = Object.keys(this.clients);
-    const newCallsigns = clientsData.map(
-      (c: ClientData) => c.type + c.callsign
-    );
+    const newCallsigns = clientsData.map((c: ClientData) => c.callsign);
 
     return oldCallsigns.filter((c) => !newCallsigns.includes(c));
   }
@@ -155,8 +153,26 @@ export class TransceiverMap {
     });
 
     el.innerHTML = clients
-      .map((c: Client) => `<div class="text-white">${c.getListText()}</div>`)
+      .map(
+        (c: Client) =>
+          `<div class="text-white clientEntry" id='${c.callsign()}'>${c.getListText()}</div>`
+      )
       .join("");
+
+    const clientEls = document.getElementsByClassName("clientEntry");
+    for (const i of clientEls) {
+      i.addEventListener("click", () => {
+        this.clientClicked(i.id);
+      });
+    }
+  }
+
+  clientClicked(callsign: string) {
+    const client = this.clients[callsign];
+    console.log(client);
+    let zoom = this.map.getZoom();
+    if (zoom < 3) zoom = 3;
+    this.map.setView(client.position(), zoom);
   }
 
   toggleMapClass(className: string) {

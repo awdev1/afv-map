@@ -95,6 +95,10 @@ class Pilot extends Client {
 
     return content;
   }
+
+  public position(): L.LatLngExpression {
+    return { lat: this.clientData.latitude, lng: this.clientData.longitude };
+  }
 }
 
 export default Pilot;

@@ -2,6 +2,7 @@ import L from "leaflet";
 
 import { atisIcon } from "../icons";
 import { ClientData, Transceiver } from "../types.ts";
+import { getCenterOfCoordinates } from "../util.ts";
 import Client from "./client.ts";
 
 class Other extends Client {
@@ -101,6 +102,12 @@ class Other extends Client {
     return `<strong>${callsign}</strong> - ${frequencies.join(
       ", "
     )} [VOI only]`;
+  }
+
+  public position(): L.LatLngExpression {
+    const { transceivers } = this.clientData;
+    const [lat, lon] = getCenterOfCoordinates(transceivers);
+    return { lat: lat, lng: lon };
   }
 }
 
