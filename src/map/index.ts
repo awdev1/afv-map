@@ -43,7 +43,8 @@ export class TransceiverMap {
   private readonly map: L.Map;
   private clients: Record<string, Client> = {};
   private filteredCallsigns: string[];
-  private ringSearchTerm: string = "";
+  private ringSearchTerm = "";
+  private isInitialLoad = true;
 
   constructor(element: string | HTMLElement) {
     this.map = L.map(element, {
@@ -161,10 +162,17 @@ export class TransceiverMap {
 
     el.innerHTML = clients
       .map(
-        (c: Client) =>
-          `<div class="text-white clientEntry" id='${c.callsign()}'>${c.getListText()}</div>`
+        (c: Client, index: number) => {
+          const animationClass = this.isInitialLoad ? 'animate-in' : '';
+          const animationStyle = this.isInitialLoad
+            ? `style="animation-delay: ${index * 0.05}s"`
+            : '';
+          return `<div class="text-white clientEntry ${animationClass}" id='${c.callsign()}' ${animationStyle}>${c.getListText()}</div>`;
+        }
       )
       .join("");
+
+    this.isInitialLoad = false;
 
     const clientEls = document.getElementsByClassName("clientEntry");
     for (const i of clientEls) {
