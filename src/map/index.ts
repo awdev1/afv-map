@@ -43,6 +43,7 @@ export class TransceiverMap {
   private readonly map: L.Map;
   private clients: Record<string, Client> = {};
   private filteredCallsigns: string[];
+  private ringSearchTerm: string = "";
 
   constructor(element: string | HTMLElement) {
     this.map = L.map(element, {
@@ -63,6 +64,12 @@ export class TransceiverMap {
     L.control.layers(maps).addTo(this.map);
 
     /* eslint-disable @typescript-eslint/no-non-null-assertion */
+    document
+      .getElementById("ring-search")!
+      .addEventListener("input", (e) => {
+        this.ringSearchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+        this.filterRangeRings();
+      });
     document
       .getElementById("toggle-pilot-ranges")!
       .addEventListener("click", () =>
@@ -85,7 +92,7 @@ export class TransceiverMap {
   }
 
   async reloadMapData() {
-    const response = await fetch("/map-data");
+    const response = await fetch("https://corsproxy.io/?url=https://afv-map.vatsim.net/map-data");
     const data = (await response.json()) as { clients: ClientData[] };
 
     for (const client of data.clients) {
@@ -178,5 +185,20 @@ export class TransceiverMap {
   toggleMapClass(className: string) {
     const el = this.map.getContainer();
     el.classList.toggle(className);
+  }
+
+  filterRangeRings() {
+    Object.values(this.clients).forEach((client: Client) => {
+      const callsign = client.callsign().toLowerCase();
+      const matches = callsign.includes(this.ringSearchTerm);
+      
+      Object.values(client.rangeRings).forEach((ring: L.Circle) => {
+        if (matches || this.ringSearchTerm === "") {
+          ring.addTo(this.map);
+        } else {
+          ring.remove();
+        }
+      });
+    });
   }
 }
