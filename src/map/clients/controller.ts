@@ -33,6 +33,11 @@ class Controller extends Client {
         icon: this.isAtis ? atisIcon : controllerIcon,
       })
         .bindPopup(content)
+        .on("click", () => {
+          if (this.onClickCallback) {
+            this.onClickCallback(this.clientData.callsign);
+          }
+        })
         .addTo(map);
     }
   }

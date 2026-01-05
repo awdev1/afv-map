@@ -14,6 +14,11 @@ class Pilot extends Client {
 
   public upsertMarkers(map: L.Map) {
     const { latitude, longitude, heading } = this.clientData;
+    
+    if (latitude === undefined || longitude === undefined || isNaN(latitude) || isNaN(longitude)) {
+      return;
+    }
+    
     const content = this.getPopupContent();
 
     const marker = this.markers.pilot;
@@ -28,6 +33,11 @@ class Pilot extends Client {
         rotationOrigin: "center",
       })
         .bindPopup(content)
+        .on("click", () => {
+          if (this.onClickCallback) {
+            this.onClickCallback(this.clientData.callsign);
+          }
+        })
         .addTo(map);
     }
   }

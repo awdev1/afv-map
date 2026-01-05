@@ -70,6 +70,7 @@ export class TransceiverMap {
       .addEventListener("input", (e) => {
         this.ringSearchTerm = (e.target as HTMLInputElement).value.toLowerCase();
         this.filterRangeRings();
+        this.setInRangeList();
       });
     document
       .getElementById("toggle-pilot-ranges")!
@@ -85,6 +86,15 @@ export class TransceiverMap {
         this.toggleMapClass("hide-other-ranges")
       );
     /* eslint-enable @typescript-eslint/no-non-null-assertion */
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const targetTab = (btn as HTMLElement).getAttribute("data-tab");
+        if (targetTab) {
+          this.switchTab(targetTab);
+        }
+      });
+    });
 
     void this.reloadMapData();
     setInterval(() => {
@@ -111,6 +121,7 @@ export class TransceiverMap {
 
     this.setClientsOnline(Object.keys(this.clients).length);
     this.setClientList();
+    this.setInRangeList();
   }
 
   upsertClient(clientData: ClientData) {
@@ -119,6 +130,9 @@ export class TransceiverMap {
     let client = this.clients[callsign];
     if (!client) {
       client = instantiateClient(clientData);
+      client.setClickCallback((clickedCallsign: string) => {
+        this.clientClicked(clickedCallsign);
+      });
     }
 
     client.update(this.map, clientData);
@@ -184,10 +198,25 @@ export class TransceiverMap {
 
   clientClicked(callsign: string) {
     const client = this.clients[callsign];
-    console.log(client);
+    if (!client) {
+      console.error("Client not found:", callsign);
+      return;
+    }
+    console.log("Clicked client:", callsign);
     let zoom = this.map.getZoom();
     if (zoom < 3) zoom = 3;
     this.map.setView(client.position(), zoom);
+    
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const searchInput = document.getElementById("ring-search")! as HTMLInputElement;
+    if (searchInput) {
+      searchInput.value = callsign;
+      this.ringSearchTerm = callsign.toLowerCase();
+      this.filterRangeRings();
+      this.setInRangeList();
+    } else {
+      console.error("Search input not found");
+    }
   }
 
   toggleMapClass(className: string) {
@@ -207,6 +236,138 @@ export class TransceiverMap {
           ring.remove();
         }
       });
+    });
+  }
+
+  switchTab(tabName: string) {
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    tabButtons.forEach((btn) => {
+      if ((btn as HTMLElement).getAttribute("data-tab") === tabName) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+
+    const tabContents = document.querySelectorAll(".tab-content");
+    tabContents.forEach((content) => {
+      if ((content as HTMLElement).getAttribute("data-tab-content") === tabName) {
+        content.classList.add("active");
+      } else {
+        content.classList.remove("active");
+      }
+    });
+  }
+
+  setInRangeList() {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const el = document.getElementById("in-range-list")!;
+
+    let pilots = Object.values(this.clients).filter(
+      (c) => c.clientData.type === "PILOT"
+    );
+
+    if (this.ringSearchTerm) {
+      pilots = pilots.filter((pilot) =>
+        pilot.callsign().toLowerCase().includes(this.ringSearchTerm)
+      );
+    }
+
+    if (pilots.length === 0) {
+      el.innerHTML = '<div class="no-aircraft">No pilots online</div>';
+      return;
+    }
+
+    const rangeGroups = pilots.map((pilot) => {
+      const pilotsInRange = this.findPilotsInRange(pilot);
+      return { pilot, pilotsInRange };
+    });
+
+    el.innerHTML = rangeGroups
+      .map(({ pilot, pilotsInRange }) => {
+        const callsign = pilot.callsign();
+        const count = pilotsInRange.length;
+        
+        let aircraftHtml = "";
+        if (count === 0) {
+          aircraftHtml = '<div class="no-aircraft">No pilots in range</div>';
+        } else {
+          aircraftHtml = pilotsInRange
+            .map(
+              (otherPilot) =>
+                `<div class="aircraft-item" data-callsign="${otherPilot.callsign()}">
+                  <strong>${otherPilot.callsign()}</strong> - ${otherPilot.clientData.altitude}ft
+                </div>`
+            )
+            .join("");
+        }
+
+        return `
+          <div class="range-group">
+            <div class="range-group-header" data-callsign="${callsign}">
+              <div>
+                <strong>${callsign}</strong> - ${pilot.clientData.altitude}ft
+              </div>
+              <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                ${count} pilots
+              </div>
+            </div>
+            <div class="range-group-aircraft">
+              ${aircraftHtml}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    const headers = el.querySelectorAll(".range-group-header");
+    headers.forEach((header) => {
+      header.addEventListener("click", () => {
+        const callsign = (header as HTMLElement).getAttribute("data-callsign");
+        if (callsign) {
+          this.clientClicked(callsign);
+        }
+      });
+    });
+
+    const aircraftItems = el.querySelectorAll(".aircraft-item");
+    aircraftItems.forEach((item) => {
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const callsign = (item as HTMLElement).getAttribute("data-callsign");
+        if (callsign) {
+          this.clientClicked(callsign);
+        }
+      });
+    });
+  }
+
+  findPilotsInRange(pilot: Client) {
+    const otherPilots = Object.values(this.clients).filter(
+      (c) => c.clientData.type === "PILOT" && c.callsign() !== pilot.callsign()
+    );
+
+    const pilotsInRange: Client[] = [];
+
+    for (const otherPilot of otherPilots) {
+      const otherPilotPos = otherPilot.position() as { lat: number; lng: number };
+      
+      for (const ring of Object.values(pilot.rangeRings)) {
+        const ringCenter = ring.getLatLng();
+        const ringRadius = ring.getRadius();
+        const distance = this.map.distance(ringCenter, otherPilotPos);
+        
+        if (distance <= ringRadius) {
+          pilotsInRange.push(otherPilot);
+          break; 
+        }
+      }
+    }
+
+    return pilotsInRange.sort((a, b) => {
+      if (a.callsign() < b.callsign()) return -1;
+      if (a.callsign() > b.callsign()) return 1;
+      return 0;
     });
   }
 }

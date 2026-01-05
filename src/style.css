@@ -243,6 +243,109 @@ h3:has(#online-count) {
   font-size: 0.95rem;
 }
 
+.tab-navigation {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  background: var(--button-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tab-btn:hover {
+  background: var(--button-hover);
+  border-color: var(--text-secondary);
+}
+
+.tab-btn.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.range-group {
+  margin-bottom: 1.5rem;
+}
+
+.range-group-header {
+  padding: 0.75rem;
+  background: var(--button-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.range-group-header:hover {
+  background: var(--button-hover);
+}
+
+.range-group-header strong {
+  color: var(--accent-color);
+  font-size: 0.95rem;
+}
+
+.range-group-aircraft {
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 0.5rem;
+}
+
+.aircraft-item {
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.25rem;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.aircraft-item:last-child {
+  margin-bottom: 0;
+}
+
+.aircraft-item:hover {
+  background: var(--button-hover);
+  box-shadow: 0 1px 4px rgba(46, 160, 67, 0.2);
+}
+
+.aircraft-item strong {
+  color: var(--accent-color);
+  font-size: 0.9rem;
+}
+
+.no-aircraft {
+  padding: 0.5rem 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 .leaflet-container {
   background-color: transparent;
   border-radius: 6px;

@@ -7,9 +7,14 @@ abstract class Client {
 
   markers: Record<string, L.Marker> = {};
   rangeRings: Record<string, L.Circle> = {};
+  onClickCallback?: (callsign: string) => void;
 
   constructor(clientData: ClientData) {
     this.clientData = clientData;
+  }
+
+  public setClickCallback(callback: (callsign: string) => void) {
+    this.onClickCallback = callback;
   }
 
   public update(map: L.Map, clientData: ClientData) {

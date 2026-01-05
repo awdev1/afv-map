@@ -26,6 +26,10 @@
         <div class="col-md-3 mb-4 mb-md-0">
           <section class="card h-100 bg-dark">
             <div class="card-body d-flex flex-column">
+              <div class="tab-navigation mb-3">
+                <button class="tab-btn active" data-tab="clients">All Clients</button>
+                <button class="tab-btn" data-tab="in-range">Pilot to Pilot</button>
+              </div>
               <p>
                 <input
                   type="text"
@@ -51,8 +55,14 @@
               </p>
               <div class="position-relative h-100">
                 <div
-                  class="position-absolute top-0 h-100 w-100 overflow-scroll"
+                  class="tab-content position-absolute top-0 h-100 w-100 overflow-scroll active"
                   id="client-list"
+                  data-tab-content="clients"
+                ></div>
+                <div
+                  class="tab-content position-absolute top-0 h-100 w-100 overflow-scroll"
+                  id="in-range-list"
+                  data-tab-content="in-range"
                 ></div>
               </div>
             </div>
