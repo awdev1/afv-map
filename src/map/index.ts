@@ -93,7 +93,7 @@ export class TransceiverMap {
   }
 
   async reloadMapData() {
-    const response = await fetch("https://corsproxy.io/?url=https://afv-map.vatsim.net/map-data");
+    const response = await fetch("https://afv-map-api.vercel.app/api/map-data");
     const data = (await response.json()) as { clients: ClientData[] };
 
     for (const client of data.clients) {
